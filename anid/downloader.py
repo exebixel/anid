@@ -1,3 +1,4 @@
+import sys
 import click
 import requests
 
@@ -51,7 +52,8 @@ def downloader(url: str, resume_byte_pos: int = None, file_name: str = None):
                     f.write(chunk)
                     pbar.update(len(chunk))
             except ChunkedEncodingError:
-                click.echo('Connection Broken! Chunked Encoding Error')
+                click.Abort('Connection Broken! Chunked Encoding Error')
+                sys.exit(1)
 
 
 def download_file(url: str, file_name: str = None) -> None:
