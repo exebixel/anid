@@ -3,7 +3,7 @@ import click
 import requests
 
 from pathlib import Path
-from requests.models import ChunkedEncodingError
+from requests.models import ChunkedEncodingError, ConnectionError
 from tqdm import tqdm
 
 DOWNLOAD_FOLDER = Path('.')
@@ -46,15 +46,17 @@ def downloader(url: str, resume_byte_pos: int = None, file_name: str = None):
         with tqdm(total=file_size, unit='B',
                   unit_scale=True, unit_divisor=1024,
                   desc=file.name, initial=initial_pos,
-                  ascii=True, miniters=1) as pbar:
+                  ascii=True, miniters=1, dynamic_ncols=True) as pbar:
             try:
                 for chunk in r.iter_content(32 * block_size):
                     f.write(chunk)
                     pbar.update(len(chunk))
             except ChunkedEncodingError:
-                click.Abort('Connection Broken! Chunked Encoding Error')
+                click.echo('Connection Broken! Chunked Encoding Error')
                 sys.exit(1)
-
+            except ConnectionError:
+                click.echo('Connection Error! Check your connection')
+                sys.exit(1)
 
 def download_file(url: str, file_name: str = None) -> None:
     """Execute the correct download operation.
