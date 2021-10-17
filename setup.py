@@ -22,7 +22,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': ['anid = anid.anid:anid'],
     },
-    version="0.1",
+    version="0.2",
     description="Anime Downloader",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -32,6 +32,8 @@ setuptools.setup(
     install_requires=["requests", "click", "tqdm"],
     python_requires=">=3.6",
     classifiers=[
+        "Operating System :: OS Independent",
+        "Environment :: Console",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
