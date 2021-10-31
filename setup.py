@@ -22,7 +22,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': ['anid = anid.anid:anid'],
     },
-    version="0.2",
+    version="0.2.1",
     description="Anime Downloader",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -17,7 +17,13 @@ def anid(anime, episodes, start=1):
     for i in range(start, episodes+1):
         url = base_url.format(anime=anime, episode=i)
         print(url)
-        response = requests.get(url, headers=headers)
+
+        try:
+            response = requests.get(url, headers=headers)
+        except ConnectionError:
+            click.echo('Connection error! Check your connection')
+            sys.exit(1)
+
         if response.ok:
             content = json.loads(response.content)
             if content['response']['status'] == '200':

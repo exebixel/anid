@@ -4,6 +4,7 @@ import requests
 
 from pathlib import Path
 from requests.models import ChunkedEncodingError, ConnectionError
+from requests.exceptions import SSLError
 from tqdm import tqdm
 
 DOWNLOAD_FOLDER = Path('.')
@@ -22,7 +23,11 @@ def downloader(url: str, resume_byte_pos: int = None, file_name: str = None):
 
     """
     # Get size of file
-    r = requests.head(url)
+    try:
+        r = requests.head(url)
+    except ConnectionError:
+        click.echo('Connection error! Check your connection')
+        sys.exit(1)
     file_size = int(r.headers.get('content-length', 0))
 
     # Append information to resume download at specific byte position
@@ -31,7 +36,14 @@ def downloader(url: str, resume_byte_pos: int = None, file_name: str = None):
                      if resume_byte_pos else None)
 
     # Establish connection
-    r = requests.get(url, stream=True, headers=resume_header)
+    try:
+        r = requests.get(url, stream=True, headers=resume_header)
+    except ConnectionError:
+        click.echo('Connection error! Check your connection')
+        sys.exit(1)
+    except SSLError as e:
+        click.echo(f'SSLError! {e}')
+        sys.exit(1)
 
     # Set configuration
     block_size = 1024
@@ -57,6 +69,9 @@ def downloader(url: str, resume_byte_pos: int = None, file_name: str = None):
             except ConnectionError:
                 click.echo('Connection Error! Check your connection')
                 sys.exit(1)
+            except SSLError as e:
+                click.echo(f'SSLError! {e}')
+                sys.exit(1)
 
 def download_file(url: str, file_name: str = None) -> None:
     """Execute the correct download operation.
@@ -71,7 +86,14 @@ def download_file(url: str, file_name: str = None) -> None:
 
     """
     # Establish connection to header of file
-    r = requests.head(url)
+    try:
+        r = requests.head(url)
+    except ConnectionError:
+        click.echo('Connection Error! Check your connection')
+        sys.exit(1)
+    except SSLError as e:
+        click.echo(f'SSLError! {e}')
+        sys.exit(1)
 
     # Get filesize of online and offline file
     file_size_online = int(r.headers.get('content-length', 0))
