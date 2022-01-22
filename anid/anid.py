@@ -1,14 +1,19 @@
+import json
 import sys
+
 import click
 import requests
-import json
-from anid.downloader import download_file 
+
+from anid.downloader import download_file
+
 
 @click.command()
 @click.argument('anime', required=True)
-@click.option('-e', '--episodes', required=True, type=int, help='Number of episodes')
-@click.option('-s', '--start', required=False, type=int, default=1, help='Number of episodes')
-def anid(anime, episodes, start=1):
+@click.option('-e', '--episodes',
+              required=True, type=int, help='Number of episodes')
+@click.option('-s', '--start',
+              required=False, type=int, default=1, help='Number of episodes')
+def anid(anime: str, episodes: int, start: int = 1):
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"
     }
@@ -38,8 +43,11 @@ def anid(anime, episodes, start=1):
         else:
             click.echo(response.status_code)
             click.echo(response.content)
-        
-def get_url_download(data):
+            sys.exit(1)
+
+
+def get_url_download(data: dict):
+    """ Check Resolutions and return episode url """
     for src in data:
         if src['label'] == '720p':
             click.echo('Resolution 720p found!')
@@ -49,11 +57,12 @@ def get_url_download(data):
             click.echo('Resolution 360p found')
             return src['src']
 
-    click.secho(f'Resolutions 720p or 360p not found!', bold=True)
-    click.echo(f'Resolutions avaliable:')
+    click.secho('Resolutions 720p or 360p not found!', bold=True)
+    click.echo('Resolutions avaliable:')
     for i in data:
         click.echo(i['label'])
     sys.exit(1)
+
 
 if __name__ == '__main__':
     anid()

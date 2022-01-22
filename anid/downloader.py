@@ -1,10 +1,10 @@
+""" Module to Download files """
 import sys
+from pathlib import Path
+
 import click
 import requests
-
-from pathlib import Path
 from requests.models import ChunkedEncodingError, ConnectionError
-from requests.exceptions import SSLError
 from tqdm import tqdm
 
 DOWNLOAD_FOLDER = Path('.')
@@ -24,11 +24,11 @@ def downloader(url: str, resume_byte_pos: int = None, file_name: str = None):
     """
     # Get size of file
     try:
-        r = requests.head(url)
+        response = requests.head(url)
     except ConnectionError:
         click.echo('Connection error! Check your connection')
         sys.exit(1)
-    file_size = int(r.headers.get('content-length', 0))
+    file_size = int(response.headers.get('content-length', 0))
 
     # Append information to resume download at specific byte position
     # to header
@@ -37,12 +37,9 @@ def downloader(url: str, resume_byte_pos: int = None, file_name: str = None):
 
     # Establish connection
     try:
-        r = requests.get(url, stream=True, headers=resume_header)
+        response = requests.get(url, stream=True, headers=resume_header)
     except ConnectionError:
         click.echo('Connection error! Check your connection')
-        sys.exit(1)
-    except SSLError as e:
-        click.echo(f'SSLError! {e}')
         sys.exit(1)
 
     # Set configuration
@@ -60,7 +57,7 @@ def downloader(url: str, resume_byte_pos: int = None, file_name: str = None):
                   desc=file.name, initial=initial_pos,
                   ascii=True, miniters=1, dynamic_ncols=True) as pbar:
             try:
-                for chunk in r.iter_content(32 * block_size):
+                for chunk in response.iter_content(32 * block_size):
                     f.write(chunk)
                     pbar.update(len(chunk))
             except ChunkedEncodingError:
@@ -69,9 +66,7 @@ def downloader(url: str, resume_byte_pos: int = None, file_name: str = None):
             except ConnectionError:
                 click.echo('Connection Error! Check your connection')
                 sys.exit(1)
-            except SSLError as e:
-                click.echo(f'SSLError! {e}')
-                sys.exit(1)
+
 
 def download_file(url: str, file_name: str = None) -> None:
     """Execute the correct download operation.
@@ -87,16 +82,13 @@ def download_file(url: str, file_name: str = None) -> None:
     """
     # Establish connection to header of file
     try:
-        r = requests.head(url)
+        response = requests.head(url)
     except ConnectionError:
         click.echo('Connection Error! Check your connection')
         sys.exit(1)
-    except SSLError as e:
-        click.echo(f'SSLError! {e}')
-        sys.exit(1)
 
     # Get filesize of online and offline file
-    file_size_online = int(r.headers.get('content-length', 0))
+    file_size_online = int(response.headers.get('content-length', 0))
     if file_name is None:
         file = DOWNLOAD_FOLDER / '-'.join(url.split('/')[-3:])
     else:
@@ -110,7 +102,6 @@ def download_file(url: str, file_name: str = None) -> None:
             downloader(url, file_size_offline, file)
         else:
             click.echo(f'File {file} is complete. Skip download.')
-            pass
     else:
         click.echo(f'File {file} does not exist. Start download.')
         downloader(url, file_name=file)
